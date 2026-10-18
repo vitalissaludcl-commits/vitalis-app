@@ -1,4 +1,3 @@
-
 import streamlit as st
 from streamlit_mic_recorder import mic_recorder
 import google.genai as genai
@@ -82,9 +81,9 @@ with col2:
                     """
                     
                     if audio_bytes:
-                        # Procesar audio directamente con Gemini
+                        # Procesar audio directamente con Gemini usando el modelo estándar actual
                         response = client.models.generate_content(
-                            model='gemini-1.5-flash',
+                            model='gemini-2.0-flash',
                             contents=[
                                 genai.types.Part.from_bytes(data=audio_bytes, mime_type='audio/wav'),
                                 prompt_sistema
@@ -93,11 +92,11 @@ with col2:
                     else:
                         # Procesar texto manual
                         response = client.models.generate_content(
-                            model='gemini-1.5-flash',
+                            model='gemini-2.0-flash',
                             contents=f"{prompt_sistema}\n\nTexto de la consulta:\n{texto_manual}"
                         )
                         
-                    st.success(" Ficha clínica redactada con éxito:")
+                    st.success("✅ Ficha clínica redactada con éxito:")
                     st.markdown(response.text)
                     
                 except Exception as e:
