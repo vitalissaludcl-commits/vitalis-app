@@ -1,6 +1,7 @@
 import streamlit as st
 from streamlit_mic_recorder import mic_recorder
 import google.genai as genai
+import streamlit.components.v1 as components
 
 # Configuración de la página
 st.set_page_config(page_title="Vitalis Salud - Asistente Clínico", page_icon="🩺", layout="wide")
@@ -40,12 +41,12 @@ with col1:
     nombre_paciente = st.text_input("Nombre y Apellido del Paciente:")
     edad_paciente = st.number_input("Edad:", min_value=0, max_value=120, value=30)
     
-    st.write("Presiona para **iniciar / detener la grabación** de la consulta:")
+    st.write("Presiona el botón para **grabar la voz de la consulta**:")
     
     # Grabador de voz usando el micrófono del navegador
     audio_rec = mic_recorder(
         start_prompt="🔴 Iniciar Grabación",
-        stop_prompt="⏹️ Detener / Finalizar Grabación",
+        stop_prompt="⏹️ Detener Grabación",
         key='recorder'
     )
     
@@ -102,16 +103,48 @@ with col2:
                             model='gemini-3.8-flash',
                             contents=f"{prompt_sistema}\n\nTexto de la consulta:\n{texto_manual}"
                         )
-                    
-                    st.session_state['ficha_generada'] = response.text
-                    st.success("✅ Ficha clínica redactada con éxito:")
+                        
+                    st.session_state['ficha_texto'] = response.text
                     
                 except Exception as e:
                     st.error(f"Error al procesar con IA: {e}")
 
-    # Si ya se generó la ficha, la muestra y habilita la función de copia directa
-    if 'ficha_generada' in st.session_state:
-        st.markdown("---")
-        st.markdown("### 📋 Texto de la Ficha Generada:")
-        # El bloque de código incluye un botón nativo para copiar todo el texto con un solo clic
-        st.code(st.session_state['ficha_generada'], language="markdown")
+    if 'ficha_texto' in st.session_state and st.session_state['ficha_texto']:
+        st.success("✅ Ficha clínica redactada con éxito:")
+        st.markdown(st.session_state['ficha_texto'])
+        
+        # Botón para copiar directamente al portapapeles con JavaScript
+        texto_limpio = st.session_state['ficha_texto'].replace('`', '\\`').replace('$', '\\$')
+        components.html(f"""
+            <button id="btnCopy" style="
+                background-color: #0E1117;
+                color: white;
+                border: 1px solid #31333F;
+                padding: 10px 18px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 500;
+                width: 100%;
+                margin-top: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            ">📋 Copiar Ficha al Portapapeles</button>
+
+            <script>
+            document.getElementById('btnCopy').addEventListener('click', function() {{
+                const textToCopy = `{texto_limpio}`;
+                navigator.clipboard.writeText(textToCopy).then(function() {{
+                    const btn = document.getElementById('btnCopy');
+                    btn.innerText = "✅ ¡Copiado al Portapapeles!";
+                    btn.style.backgroundColor = "#28a745";
+                    setTimeout(function() {{
+                        btn.innerText = "📋 Copiar Ficha al Portapapeles";
+                        btn.style.backgroundColor = "#0E1117";
+                    }}, 2000);
+                }});
+            }});
+            </script>
+        """, height=65)
