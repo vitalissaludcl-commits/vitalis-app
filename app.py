@@ -40,12 +40,12 @@ with col1:
     nombre_paciente = st.text_input("Nombre y Apellido del Paciente:")
     edad_paciente = st.number_input("Edad:", min_value=0, max_value=120, value=30)
     
-    st.write("Presiona el botón para **grabar la voz de la consulta**:")
+    st.write("Presiona para **iniciar / detener la grabación** de la consulta:")
     
     # Grabador de voz usando el micrófono del navegador
     audio_rec = mic_recorder(
         start_prompt="🔴 Iniciar Grabación",
-        stop_prompt="⏹️ Detener Grabación",
+        stop_prompt="⏹️ Detener / Finalizar Grabación",
         key='recorder'
     )
     
@@ -90,7 +90,6 @@ with col2:
                     """
                     
                     if audio_bytes:
-                        # Procesar audio directamente con Gemini usando el modelo 3.8-flash
                         response = client.models.generate_content(
                             model='gemini-3.8-flash',
                             contents=[
@@ -99,14 +98,20 @@ with col2:
                             ]
                         )
                     else:
-                        # Procesar texto manual
                         response = client.models.generate_content(
                             model='gemini-3.8-flash',
                             contents=f"{prompt_sistema}\n\nTexto de la consulta:\n{texto_manual}"
                         )
-                        
+                    
+                    st.session_state['ficha_generada'] = response.text
                     st.success("✅ Ficha clínica redactada con éxito:")
-                    st.markdown(response.text)
                     
                 except Exception as e:
                     st.error(f"Error al procesar con IA: {e}")
+
+    # Si ya se generó la ficha, la muestra y habilita la función de copia directa
+    if 'ficha_generada' in st.session_state:
+        st.markdown("---")
+        st.markdown("### 📋 Texto de la Ficha Generada:")
+        # El bloque de código incluye un botón nativo para copiar todo el texto con un solo clic
+        st.code(st.session_state['ficha_generada'], language="markdown")
