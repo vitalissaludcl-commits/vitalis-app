@@ -8,6 +8,11 @@ st.set_page_config(page_title="Vitalis Salud - Asistente Clínico", page_icon="�
 st.title("🩺 Vitalis Salud: Asistente de Ficha Clínica por Voz")
 st.markdown("---")
 
+# --- OBTENER LA CLAVE API DE FORMA AUTOMÁTICA DESDE LOS SECRETS ---
+api_key = None
+if "GEMINI_API_KEY" in st.secrets:
+    api_key = st.secrets["GEMINI_API_KEY"]
+
 # --- BARRA LATERAL: CONFIGURACIÓN E HISTORIAL ---
 with st.sidebar:
     st.header("⚙️ Configuración de Consulta")
@@ -19,8 +24,12 @@ with st.sidebar:
         st.info(f"💡 Recuerda permitir la captura de audio del sistema para {plataforma}.")
     
     st.markdown("---")
-    st.header("🔑 Clave API de IA")
-    api_key = st.text_input("Ingresa tu Gemini API Key:", type="password", help="Obtén tu clave en Google AI Studio")
+    st.header("🔑 Estado de la Clave API")
+    if api_key:
+        st.success("✅ Clave API cargada de forma segura y permanente.")
+    else:
+        st.warning("⚠️ No se encontró la clave en los Secrets de Streamlit.")
+        api_key = st.text_input("Ingresa tu Gemini API Key manualmente:", type="password")
 
 # --- CUERPO PRINCIPAL ---
 col1, col2 = st.columns([1, 1])
@@ -60,7 +69,7 @@ with col2:
     
     if btn_generar:
         if not api_key:
-            st.error("⚠️ Por favor ingresa tu **Gemini API Key** en la barra lateral para procesar la información.")
+            st.error("⚠️ Por favor configura tu **Gemini API Key** en los Secrets de Streamlit.")
         elif not audio_bytes and not texto_manual.strip():
             st.warning("⚠️ Debes **grabar audio** o **escribir notas** antes de generar la ficha.")
         else:
@@ -81,7 +90,7 @@ with col2:
                     """
                     
                     if audio_bytes:
-                        # Procesar audio directamente con Gemini usando el nuevo modelo 3.8-flash
+                        # Procesar audio directamente con Gemini usando el modelo 3.8-flash
                         response = client.models.generate_content(
                             model='gemini-3.8-flash',
                             contents=[
