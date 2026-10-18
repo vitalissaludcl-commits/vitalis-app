@@ -81,9 +81,9 @@ with col2:
                     """
                     
                     if audio_bytes:
-                        # Procesar audio directamente con Gemini usando el modelo estándar actual
+                        # Procesar audio directamente con Gemini usando el nuevo modelo 3.8-flash
                         response = client.models.generate_content(
-                            model='gemini-2.0-flash',
+                            model='gemini-3.8-flash',
                             contents=[
                                 genai.types.Part.from_bytes(data=audio_bytes, mime_type='audio/wav'),
                                 prompt_sistema
@@ -92,7 +92,7 @@ with col2:
                     else:
                         # Procesar texto manual
                         response = client.models.generate_content(
-                            model='gemini-2.0-flash',
+                            model='gemini-3.8-flash',
                             contents=f"{prompt_sistema}\n\nTexto de la consulta:\n{texto_manual}"
                         )
                         
